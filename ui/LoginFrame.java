@@ -15,31 +15,47 @@ public class LoginFrame extends JFrame {
 
     public LoginFrame() {
 
-        setTitle("Quiz Management System - Login");
-        setSize(400, 300);
+        setTitle("Intelligent Quiz Management System - Login");
+        setSize(450, 400);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
 
         setLayout(new BorderLayout());
+        getContentPane().setBackground(ModernTheme.BACKGROUND_COLOR);
 
-        JLabel title = new JLabel("Quiz Management System", JLabel.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 18));
-        add(title, BorderLayout.NORTH);
+        JLabel title = new JLabel("🎓 Quiz Management System", JLabel.CENTER);
+        ModernTheme.styleLabel(title, 1); // Title style
+        JPanel titlePanel = new JPanel();
+        titlePanel.setBackground(ModernTheme.PRIMARY_COLOR);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
+        titlePanel.add(title);
+        title.setForeground(Color.WHITE);
+        add(titlePanel, BorderLayout.NORTH);
 
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 2, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panel.setLayout(new GridLayout(3, 2, 15, 15));
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        ModernTheme.stylePanel(panel);
 
-        panel.add(new JLabel("Email:"));
+        JLabel emailLabel = new JLabel("Email:");
+        ModernTheme.styleLabel(emailLabel, 0);
+        panel.add(emailLabel);
         emailField = new JTextField();
+        ModernTheme.styleTextField(emailField);
         panel.add(emailField);
 
-        panel.add(new JLabel("Password:"));
+        JLabel passwordLabel = new JLabel("Password:");
+        ModernTheme.styleLabel(passwordLabel, 0);
+        panel.add(passwordLabel);
         passwordField = new JPasswordField();
+        ModernTheme.stylePasswordField(passwordField);
         panel.add(passwordField);
 
         JButton loginBtn = new JButton("Login");
+        ModernTheme.styleButton(loginBtn);
         JButton registerBtn = new JButton("Register");
+        ModernTheme.styleButton(registerBtn);
 
         panel.add(loginBtn);
         panel.add(registerBtn);

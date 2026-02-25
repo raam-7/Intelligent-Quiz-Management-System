@@ -2,11 +2,13 @@ package ui;
 
 import database.DBConnection;
 import models.Question;
+import java.util.Map;
 
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,39 +31,71 @@ public class QuizFrame extends JFrame {
     // 🔥 Topic analytics
     private Map<String, Integer> topicCorrect = new HashMap<>();
     private Map<String, Integer> topicTotal = new HashMap<>();
+    
+    // 🧠 Adaptive Difficulty System
+    private int correctInRow = 0;
+    private String currentDifficulty = "Easy";
+    private JLabel difficultyLabel;
 
     public QuizFrame(int userId) {
 
         this.userId = userId;
 
         setTitle("Intelligent Quiz System");
-        setSize(700, 450);
+        setSize(800, 550);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
         setLayout(new BorderLayout());
+        getContentPane().setBackground(ModernTheme.BACKGROUND_COLOR);
 
-        // Top Panel
+        // Top Panel with Question and Timer
         JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(ModernTheme.PRIMARY_COLOR);
+        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         questionLabel = new JLabel("", JLabel.CENTER);
-        questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        ModernTheme.styleLabel(questionLabel, 2);
+        questionLabel.setForeground(Color.WHITE);
 
+        JPanel rightPanel = new JPanel();
+        rightPanel.setBackground(ModernTheme.PRIMARY_COLOR);
         timerLabel = new JLabel("Time Left: 15s", JLabel.RIGHT);
-        timerLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        timerLabel.setForeground(Color.RED);
+        timerLabel.setFont(ModernTheme.BUTTON_FONT);
+        timerLabel.setForeground(ModernTheme.DANGER_COLOR);
+        
+        difficultyLabel = new JLabel("Level: " + currentDifficulty, JLabel.RIGHT);
+        difficultyLabel.setFont(ModernTheme.BUTTON_FONT);
+        difficultyLabel.setForeground(ModernTheme.SUCCESS_COLOR);
+        
+        rightPanel.add(timerLabel);
+        rightPanel.add(new JLabel("  |  "));
+        rightPanel.add(difficultyLabel);
 
         topPanel.add(questionLabel, BorderLayout.CENTER);
-        topPanel.add(timerLabel, BorderLayout.EAST);
+        topPanel.add(rightPanel, BorderLayout.EAST);
 
         add(topPanel, BorderLayout.NORTH);
 
         // Options Panel
-        JPanel optionsPanel = new JPanel(new GridLayout(4,1));
+        JPanel optionsPanel = new JPanel(new GridLayout(4, 1, 10, 15));
+        optionsPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        optionsPanel.setBackground(ModernTheme.BACKGROUND_COLOR);
 
         opt1 = new JRadioButton();
         opt2 = new JRadioButton();
         opt3 = new JRadioButton();
         opt4 = new JRadioButton();
+
+        opt1.setFont(ModernTheme.LABEL_FONT);
+        opt2.setFont(ModernTheme.LABEL_FONT);
+        opt3.setFont(ModernTheme.LABEL_FONT);
+        opt4.setFont(ModernTheme.LABEL_FONT);
+        
+        opt1.setBackground(ModernTheme.BACKGROUND_COLOR);
+        opt2.setBackground(ModernTheme.BACKGROUND_COLOR);
+        opt3.setBackground(ModernTheme.BACKGROUND_COLOR);
+        opt4.setBackground(ModernTheme.BACKGROUND_COLOR);
 
         group = new ButtonGroup();
         group.add(opt1);
@@ -76,8 +110,15 @@ public class QuizFrame extends JFrame {
 
         add(optionsPanel, BorderLayout.CENTER);
 
-        JButton nextBtn = new JButton("Next");
-        add(nextBtn, BorderLayout.SOUTH);
+        JPanel southPanel = new JPanel();
+        southPanel.setBackground(ModernTheme.BACKGROUND_COLOR);
+        southPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        
+        JButton nextBtn = new JButton("Next →");
+        ModernTheme.styleButton(nextBtn);
+        southPanel.add(nextBtn);
+        
+        add(southPanel, BorderLayout.SOUTH);
 
         nextBtn.addActionListener(e -> nextQuestion());
 
@@ -115,6 +156,9 @@ public class QuizFrame extends JFrame {
                         rs.getString("difficulty")
                 ));
             }
+            
+            // 🎲 Randomize question order
+            Collections.shuffle(questions);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -168,6 +212,33 @@ public class QuizFrame extends JFrame {
         if (selected == currentQ.getCorrectOption()) {
             score++;
             topicCorrect.put(topic, topicCorrect.getOrDefault(topic, 0) + 1);
+            
+            // 🧠 Adaptive Difficulty: Increase on 2 consecutive correct
+            correctInRow++;
+            if (correctInRow >= 2) {
+                if (currentDifficulty.equals("Easy")) {
+                    currentDifficulty = "Medium";
+                    difficultyLabel.setText("Level: " + currentDifficulty);
+                    difficultyLabel.setForeground(new Color(255, 165, 0));
+                } else if (currentDifficulty.equals("Medium")) {
+                    currentDifficulty = "Hard";
+                    difficultyLabel.setText("Level: " + currentDifficulty);
+                    difficultyLabel.setForeground(Color.RED);
+                }
+                correctInRow = 0;
+            }
+        } else {
+            // 🧠 Adaptive Difficulty: Decrease on wrong answer
+            correctInRow = 0;
+            if (currentDifficulty.equals("Hard")) {
+                currentDifficulty = "Medium";
+                difficultyLabel.setText("Level: " + currentDifficulty);
+                difficultyLabel.setForeground(new Color(255, 165, 0));
+            } else if (currentDifficulty.equals("Medium")) {
+                currentDifficulty = "Easy";
+                difficultyLabel.setText("Level: " + currentDifficulty);
+                difficultyLabel.setForeground(new Color(0, 128, 0));
+            }
         }
 
         currentIndex++;
