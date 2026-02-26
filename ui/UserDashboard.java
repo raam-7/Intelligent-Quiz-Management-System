@@ -12,7 +12,7 @@ public class UserDashboard extends JFrame {
         this.userId = userId;
 
         setTitle("User Dashboard");
-        setSize(600, 450);
+        setSize(800, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
@@ -24,50 +24,67 @@ public class UserDashboard extends JFrame {
         ModernTheme.styleLabel(title, 1);
         JPanel titlePanel = new JPanel();
         titlePanel.setBackground(ModernTheme.PRIMARY_COLOR);
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(18, 0, 18, 0));
         titlePanel.add(title);
         title.setForeground(Color.WHITE);
         add(titlePanel, BorderLayout.NORTH);
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(4, 1, 15, 15));
-        panel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
-        ModernTheme.stylePanel(panel);
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.setFont(ModernTheme.BUTTON_FONT);
 
+        // Quiz Tab
+        JPanel quizTab = new JPanel(new GridBagLayout());
+        quizTab.setBackground(ModernTheme.BACKGROUND_COLOR);
         JButton startQuizBtn = new JButton("🎯 Start Quiz");
         ModernTheme.styleButton(startQuizBtn);
-        JButton viewResultsBtn = new JButton("📊 View Results");
+        quizTab.add(startQuizBtn);
+        tabs.addTab("Quiz", quizTab);
+
+        // Results Tab
+        JPanel resultsTab = new JPanel(new GridBagLayout());
+        resultsTab.setBackground(ModernTheme.BACKGROUND_COLOR);
+        JButton viewResultsBtn = new JButton("📊 View My Results");
         ModernTheme.styleButton(viewResultsBtn);
+        resultsTab.add(viewResultsBtn);
+        tabs.addTab("Results", resultsTab);
+
+        // Leaderboard Tab
+        JPanel lbTab = new JPanel(new GridBagLayout());
+        lbTab.setBackground(ModernTheme.BACKGROUND_COLOR);
         JButton leaderboardBtn = new JButton("🏆 Leaderboard");
         ModernTheme.styleButton(leaderboardBtn);
-        JButton logoutBtn = new JButton("🚪 Logout");
-        logoutBtn.setBackground(ModernTheme.DANGER_COLOR);
-        ModernTheme.styleButton(logoutBtn);
+        lbTab.add(leaderboardBtn);
+        tabs.addTab("Leaderboard", lbTab);
 
-        panel.add(startQuizBtn);
-        panel.add(viewResultsBtn);
-        panel.add(leaderboardBtn);
-        panel.add(logoutBtn);
+        // Profile Tab
+        JPanel profileTab = new JPanel(new GridLayout(3,1,10,10));
+        profileTab.setBackground(ModernTheme.BACKGROUND_COLOR);
+        JLabel info = new JLabel("User ID: " + userId);
+        info.setFont(ModernTheme.LABEL_FONT);
+        profileTab.add(info);
+        tabs.addTab("Profile", profileTab);
 
-        add(panel, BorderLayout.CENTER);
+        add(tabs, BorderLayout.CENTER);
 
-        // ✅ Start Quiz
+        // Actions
         startQuizBtn.addActionListener(e -> {
             new QuizFrame(userId);
             dispose();
         });
 
-        // ✅ View Results (moved below creation)
-        viewResultsBtn.addActionListener(e -> {
-            new ResultFrame(userId);
-        });
+        viewResultsBtn.addActionListener(e -> new ResultFrame(userId));
 
-        // ✅ Leaderboard
-        leaderboardBtn.addActionListener(e -> {
-            new LeaderboardFrame();
-        });
+        leaderboardBtn.addActionListener(e -> new LeaderboardFrame());
 
-        // ✅ Logout
+        // Bottom Logout
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottom.setBackground(ModernTheme.BACKGROUND_COLOR);
+        JButton logoutBtn = new JButton("🚪 Logout");
+        logoutBtn.setBackground(ModernTheme.DANGER_COLOR);
+        ModernTheme.styleButton(logoutBtn);
+        bottom.add(logoutBtn);
+        add(bottom, BorderLayout.SOUTH);
+
         logoutBtn.addActionListener(e -> {
             new LoginFrame();
             dispose();

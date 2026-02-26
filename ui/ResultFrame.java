@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -54,7 +55,12 @@ public class ResultFrame extends JFrame {
         table.getTableHeader().setForeground(Color.WHITE);
         table.getTableHeader().setFont(ModernTheme.BUTTON_FONT);
 
-        loadResults(model);
+        try {
+            loadResults(model);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error loading results: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -182,35 +188,31 @@ public class ResultFrame extends JFrame {
         setVisible(true);
     }
 
-    private void loadResults(DefaultTableModel model) {
+    private void loadResults(DefaultTableModel model) throws Exception {
 
-        try {
-            Connection conn = DBConnection.getConnection();
+        Connection conn = DBConnection.getConnection();
+        if (conn == null) throw new Exception("Database connection is null");
 
-            String sql = """
-                    SELECT id, score, accuracy, time_taken, date
-                    FROM results
-                    WHERE user_id = ?
-                    ORDER BY date DESC
-                    """;
+        String sql = "SELECT id, score, accuracy, time_taken, date FROM results WHERE user_id = ? ORDER BY date DESC";
 
-            PreparedStatement pst = conn.prepareStatement(sql);
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, userId);
 
-            ResultSet rs = pst.executeQuery();
-
-            while (rs.next()) {
-                model.addRow(new Object[]{
-                        rs.getInt("id"),
-                        rs.getInt("score"),
-                        String.format("%.2f", rs.getDouble("accuracy")),
-                        rs.getInt("time_taken"),
-                        rs.getTimestamp("date")
-                });
+            try (ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    model.addRow(new Object[]{
+                            rs.getInt("id"),
+                            rs.getInt("score"),
+                            String.format("%.2f", rs.getDouble("accuracy")),
+                            rs.getInt("time_taken"),
+                            rs.getTimestamp("date")
+                    });
+                }
             }
+        }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (model.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "No previous results found for this user.", "No Results", JOptionPane.INFORMATION_MESSAGE);
         }
     }
     
