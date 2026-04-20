@@ -1,4 +1,4 @@
-# Intelligent Quiz Management System (Java + Swing + MySQL)
+# Intelligent Quiz Management System By (Java + Swing + MySQL)
 
 A role-based desktop quiz application built using **Java Swing** and **MySQL**, featuring a **timer-based quiz engine**, **performance analytics (weak topic detection + recommendations)**, **result history**, **leaderboard**, and a **full Admin CRUD panel** for managing the question bank.
 
