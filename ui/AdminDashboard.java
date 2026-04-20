@@ -7,80 +7,76 @@ public class AdminDashboard extends JFrame {
 
     public AdminDashboard() {
         setTitle("Admin Dashboard");
-        setSize(800, 600);
-        setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
+        ModernTheme.prepareFrame(this, 980, 680);
 
-        setLayout(new BorderLayout());
-        getContentPane().setBackground(ModernTheme.BACKGROUND_COLOR);
-
-        JLabel title = new JLabel("🔐 Admin Panel", JLabel.CENTER);
-        ModernTheme.styleLabel(title, 1);
-        JPanel titlePanel = new JPanel();
-        titlePanel.setBackground(ModernTheme.PRIMARY_COLOR);
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(18, 0, 18, 0));
-        titlePanel.add(title);
-        title.setForeground(Color.WHITE);
-        add(titlePanel, BorderLayout.NORTH);
+        JPanel page = ModernTheme.createPagePanel(new BorderLayout(20, 20));
+        page.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        page.add(ModernTheme.createHeaderPanel("Admin Command Center", "Manage questions, review user performance, and explore live analytics from one place."), BorderLayout.NORTH);
 
         JTabbedPane tabs = new JTabbedPane();
-        tabs.setFont(ModernTheme.BUTTON_FONT);
+        ModernTheme.styleTabbedPane(tabs);
+        tabs.addTab("Manage", createManageTab());
+        tabs.addTab("Users", createUsersTab());
+        tabs.addTab("Analytics", createAnalyticsTab());
+        page.add(tabs, BorderLayout.CENTER);
 
-        // Manage Questions Tab
-        JPanel managePanel = new JPanel();
-        managePanel.setLayout(new GridBagLayout());
-        managePanel.setBackground(ModernTheme.BACKGROUND_COLOR);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10,10,10,10);
-
-        JButton manageQuestionsBtn = new JButton("❓ Open Manage Questions");
-        ModernTheme.styleButton(manageQuestionsBtn);
-        gbc.gridx = 0; gbc.gridy = 0;
-        managePanel.add(manageQuestionsBtn, gbc);
-
-        tabs.addTab("Manage", managePanel);
-
-        // Users Tab
-        JPanel usersPanel = new JPanel(new BorderLayout());
-        usersPanel.setBackground(ModernTheme.BACKGROUND_COLOR);
-        JPanel usersTop = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        usersTop.setBackground(ModernTheme.BACKGROUND_COLOR);
-        JButton openUsersBtn = new JButton("👥 Open User Performance");
-        ModernTheme.styleButton(openUsersBtn);
-        usersTop.add(openUsersBtn);
-        usersPanel.add(usersTop, BorderLayout.NORTH);
-        tabs.addTab("Users", usersPanel);
-
-        // Analytics Tab
-        JPanel analyticsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        analyticsPanel.setBackground(ModernTheme.BACKGROUND_COLOR);
-        JButton viewReportsBtn = new JButton("📊 Open Analytics");
-        ModernTheme.styleButton(viewReportsBtn);
-        analyticsPanel.add(viewReportsBtn);
-        tabs.addTab("Analytics", analyticsPanel);
-
-        add(tabs, BorderLayout.CENTER);
-
-        // Actions
-        manageQuestionsBtn.addActionListener(e -> new ManageQuestionsFrame());
-        openUsersBtn.addActionListener(e -> new AdminAnalyticsFrame());
-        viewReportsBtn.addActionListener(e -> new AdminAnalyticsFrame());
-
-        // Bottom Logout
-        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        bottom.setBackground(ModernTheme.BACKGROUND_COLOR);
-        JButton logoutBtn = new JButton("🚪 Logout");
-        logoutBtn.setBackground(ModernTheme.DANGER_COLOR);
-        ModernTheme.styleButton(logoutBtn);
-        bottom.add(logoutBtn);
-        add(bottom, BorderLayout.SOUTH);
+        JButton logoutBtn = new JButton("Logout");
+        ModernTheme.styleDangerButton(logoutBtn);
+        JPanel footer = ModernTheme.createSectionPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        footer.add(logoutBtn);
+        page.add(footer, BorderLayout.SOUTH);
 
         logoutBtn.addActionListener(e -> {
             new LoginFrame();
             dispose();
         });
 
+        add(page);
         setVisible(true);
+    }
+
+    private JPanel createManageTab() {
+        JPanel panel = new JPanel(new BorderLayout(0, 18));
+        panel.setBorder(BorderFactory.createEmptyBorder(18, 8, 8, 8));
+        panel.setOpaque(false);
+        panel.add(ModernTheme.createSubtleLabel("Update the quiz bank and keep content fresh."), BorderLayout.NORTH);
+        panel.add(createActionCard("Question Bank", "Add, edit, or remove questions with a cleaner data management view.", "Open Manager", () -> new ManageQuestionsFrame()), BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel createUsersTab() {
+        JPanel panel = new JPanel(new GridLayout(1, 2, 18, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(18, 8, 8, 8));
+        panel.setOpaque(false);
+        panel.add(createActionCard("User Performance", "Inspect how learners are doing across attempts, averages, and rankings.", "Open Users", () -> new AdminAnalyticsFrame()));
+        panel.add(createActionCard("Top Performers", "Jump into the analytics dashboard to spot strong performers and trends.", "Open Rankings", () -> new AdminAnalyticsFrame()));
+        return panel;
+    }
+
+    private JPanel createAnalyticsTab() {
+        JPanel panel = new JPanel(new GridLayout(1, 1, 0, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(18, 8, 8, 8));
+        panel.setOpaque(false);
+        panel.add(createActionCard("System Analytics", "Explore questions by topic, difficulty mix, attempts, and system-wide performance.", "View Analytics", () -> new AdminAnalyticsFrame()));
+        return panel;
+    }
+
+    private JPanel createActionCard(String title, String description, String buttonText, Runnable action) {
+        JPanel card = ModernTheme.createCardPanel(new BorderLayout(0, 18));
+
+        JPanel content = new JPanel(new GridLayout(0, 1, 0, 10));
+        content.setOpaque(false);
+        content.add(ModernTheme.createSectionTitle(title));
+        content.add(ModernTheme.createSubtleLabel("<html><body style='width:260px'>" + description + "</body></html>"));
+
+        JButton button = new JButton(buttonText);
+        ModernTheme.styleButton(button);
+        button.addActionListener(e -> action.run());
+
+        card.add(content, BorderLayout.CENTER);
+        card.add(button, BorderLayout.SOUTH);
+        return card;
     }
 }
