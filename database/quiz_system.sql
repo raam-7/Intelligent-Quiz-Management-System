@@ -63,6 +63,20 @@ CREATE TABLE `results` (
   `date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `result_topic_stats`
+--
+
+CREATE TABLE `result_topic_stats` (
+  `id` int(11) NOT NULL,
+  `result_id` int(11) NOT NULL,
+  `topic` varchar(100) NOT NULL,
+  `correct_count` int(11) NOT NULL,
+  `total_count` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Dumping data for table `results`
 --
@@ -119,6 +133,13 @@ ALTER TABLE `results`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indexes for table `result_topic_stats`
+--
+ALTER TABLE `result_topic_stats`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `result_id` (`result_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -142,6 +163,12 @@ ALTER TABLE `results`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
+-- AUTO_INCREMENT for table `result_topic_stats`
+--
+ALTER TABLE `result_topic_stats`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
@@ -156,6 +183,12 @@ ALTER TABLE `users`
 --
 ALTER TABLE `results`
   ADD CONSTRAINT `results_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `result_topic_stats`
+--
+ALTER TABLE `result_topic_stats`
+  ADD CONSTRAINT `result_topic_stats_ibfk_1` FOREIGN KEY (`result_id`) REFERENCES `results` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

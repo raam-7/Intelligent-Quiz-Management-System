@@ -91,37 +91,32 @@ public class ResultFrame extends JFrame {
 
         try {
             Connection conn = DBConnection.getConnection();
-            String topicSql = "SELECT DISTINCT topic FROM questions";
-            Statement stmt = conn.createStatement();
-            ResultSet topicRs = stmt.executeQuery(topicSql);
+            ensureTopicStatsTable(conn);
 
-            int totalAllQuestions = 0;
-            int totalAllCorrect = 0;
+            String topicSql = """
+                    SELECT rts.topic,
+                           SUM(rts.correct_count) AS total_correct,
+                           SUM(rts.total_count) AS total_questions
+                    FROM result_topic_stats rts
+                    JOIN results r ON r.id = rts.result_id
+                    WHERE r.user_id = ?
+                    GROUP BY rts.topic
+                    ORDER BY rts.topic
+                    """;
 
-            for (int i = 0; i < model.getRowCount(); i++) {
-                try {
-                    int score = Integer.parseInt(model.getValueAt(i, 1).toString());
-                    double accuracy = Double.parseDouble(model.getValueAt(i, 2).toString());
-                    totalAllCorrect += score;
-                    totalAllQuestions += accuracy > 0 ? (int) (score * 100 / accuracy) : 0;
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+            try (PreparedStatement pst = conn.prepareStatement(topicSql)) {
+                pst.setInt(1, userId);
+                ResultSet rs = pst.executeQuery();
+
+                while (rs.next()) {
+                    int totalCorrect = rs.getInt("total_correct");
+                    int totalQuestions = rs.getInt("total_questions");
+                    double topicAccuracy = totalQuestions > 0 ? (totalCorrect * 100.0 / totalQuestions) : 0;
+                    topicAccuracyMap.put(rs.getString("topic"), topicAccuracy);
                 }
             }
-
-            while (topicRs.next()) {
-                String topic = topicRs.getString("topic");
-                double topicAccuracy = totalAllQuestions > 0 ? (totalAllCorrect * 100.0 / totalAllQuestions) : 0;
-                topicAccuracyMap.put(topic, topicAccuracy);
-            }
-
-            topicRs.close();
-            stmt.close();
         } catch (Exception ex) {
             ex.printStackTrace();
-            topicAccuracyMap.put("Java", 75.0);
-            topicAccuracyMap.put("OOP", 80.0);
-            topicAccuracyMap.put("Collections", 70.0);
         }
 
         int totalQuestions = 0;
@@ -137,7 +132,30 @@ public class ResultFrame extends JFrame {
             }
         }
 
+        if (topicAccuracyMap.isEmpty()) {
+            topicAccuracyMap.put("No topic data", 0.0);
+        }
+
         new AnalyticsDashboardFrame(totalQuestions, totalCorrect, topicAccuracyMap);
+    }
+
+    private void ensureTopicStatsTable(Connection conn) throws Exception {
+        String sql = """
+                CREATE TABLE IF NOT EXISTS result_topic_stats (
+                    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    result_id INT NOT NULL,
+                    topic VARCHAR(100) NOT NULL,
+                    correct_count INT NOT NULL,
+                    total_count INT NOT NULL,
+                    CONSTRAINT fk_result_topic_stats_result
+                        FOREIGN KEY (result_id) REFERENCES results(id)
+                        ON DELETE CASCADE
+                )
+                """;
+
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        }
     }
 
     private void loadResults(DefaultTableModel model) throws Exception {

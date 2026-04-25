@@ -1,7 +1,14 @@
 package ui;
 
+import database.DBConnection;
+
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDashboard extends JFrame {
 
@@ -43,10 +50,48 @@ public class UserDashboard extends JFrame {
     }
 
     private JPanel createQuizTab() {
-        return createActionCard("Start Smart Quiz", "A timed quiz flow with adaptive difficulty, live progress, and clearer interaction states.", "Start Quiz", () -> {
-            new QuizFrame(userId);
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.setBorder(BorderFactory.createEmptyBorder(18, 8, 8, 8));
+
+        JPanel card = ModernTheme.createCardPanel(new BorderLayout(0, 18));
+
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.add(ModernTheme.createSectionTitle("Start Smart Quiz"));
+        content.add(Box.createVerticalStrut(8));
+        content.add(ModernTheme.createSubtleLabel("Pick a topic, difficulty, and number of questions before starting."));
+        content.add(Box.createVerticalStrut(18));
+
+        JComboBox<String> topicBox = new JComboBox<>(loadFilterValues("SELECT DISTINCT topic FROM questions WHERE topic IS NOT NULL AND topic <> '' ORDER BY topic", "All Topics"));
+        JComboBox<String> difficultyBox = new JComboBox<>(loadFilterValues("SELECT DISTINCT difficulty FROM questions WHERE difficulty IS NOT NULL AND difficulty <> '' ORDER BY difficulty", "All Difficulties"));
+        JSpinner countSpinner = new JSpinner(new SpinnerNumberModel(10, 1, 50, 1));
+
+        topicBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        difficultyBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        countSpinner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+
+        content.add(createFilterField("Topic Category", topicBox));
+        content.add(Box.createVerticalStrut(12));
+        content.add(createFilterField("Difficulty", difficultyBox));
+        content.add(Box.createVerticalStrut(12));
+        content.add(createFilterField("Question Count", countSpinner));
+
+        JButton startQuizBtn = new JButton("Start Quiz");
+        ModernTheme.styleButton(startQuizBtn);
+        startQuizBtn.addActionListener(e -> {
+            String topic = String.valueOf(topicBox.getSelectedItem());
+            String difficulty = String.valueOf(difficultyBox.getSelectedItem());
+            int questionCount = (Integer) countSpinner.getValue();
+            new QuizFrame(userId, topic, difficulty, questionCount);
             dispose();
         });
+
+        card.add(content, BorderLayout.CENTER);
+        card.add(startQuizBtn, BorderLayout.SOUTH);
+        wrapper.add(card, BorderLayout.CENTER);
+        return wrapper;
     }
 
     private JPanel createResultsTab() {
@@ -91,5 +136,34 @@ public class UserDashboard extends JFrame {
         card.add(button, BorderLayout.SOUTH);
         wrapper.add(card, BorderLayout.CENTER);
         return wrapper;
+    }
+
+    private JPanel createFilterField(String labelText, JComponent input) {
+        JPanel panel = new JPanel(new BorderLayout(0, 6));
+        panel.setOpaque(false);
+        JLabel label = ModernTheme.createSubtleLabel(labelText);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(label, BorderLayout.NORTH);
+        panel.add(input, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private String[] loadFilterValues(String sql, String allOption) {
+        List<String> values = new ArrayList<>();
+        values.add(allOption);
+
+        try {
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement pst = conn.prepareStatement(sql);
+            ResultSet rs = pst.executeQuery();
+
+            while (rs.next()) {
+                values.add(rs.getString(1));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return values.toArray(new String[0]);
     }
 }

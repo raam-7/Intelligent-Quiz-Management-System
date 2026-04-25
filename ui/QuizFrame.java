@@ -18,6 +18,9 @@ public class QuizFrame extends JFrame {
 
     private final int userId;
     private final ArrayList<Question> questions = new ArrayList<>();
+    private final String selectedTopic;
+    private final String selectedDifficulty;
+    private final int requestedQuestionCount;
     private int currentIndex = 0;
     private int score = 0;
 
@@ -42,7 +45,19 @@ public class QuizFrame extends JFrame {
     private String currentDifficulty = "Easy";
 
     public QuizFrame(int userId) {
+        this(userId, "All Topics", "All Difficulties", 10);
+    }
+
+    public QuizFrame(int userId, String selectedTopic, String selectedDifficulty, int requestedQuestionCount) {
         this.userId = userId;
+        this.selectedTopic = selectedTopic;
+        this.selectedDifficulty = selectedDifficulty;
+        this.requestedQuestionCount = requestedQuestionCount;
+        if ("Medium".equalsIgnoreCase(selectedDifficulty)) {
+            this.currentDifficulty = "Medium";
+        } else if ("Hard".equalsIgnoreCase(selectedDifficulty)) {
+            this.currentDifficulty = "Hard";
+        }
 
         setTitle("Intelligent Quiz System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -65,7 +80,12 @@ public class QuizFrame extends JFrame {
 
         loadQuestions();
         if (questions.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No questions available!");
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No questions matched the selected filters.\nTopic: " + selectedTopic
+                            + "\nDifficulty: " + selectedDifficulty
+                            + "\nTry 'All Topics' or 'All Difficulties', or add matching questions from admin."
+            );
             new UserDashboard(userId);
             dispose();
         } else {
@@ -84,6 +104,7 @@ public class QuizFrame extends JFrame {
         left.add(ModernTheme.createSectionTitle("Interactive Quiz Session"));
         progressLabel = ModernTheme.createSubtleLabel("Question 1");
         left.add(progressLabel);
+        left.add(ModernTheme.createSubtleLabel("Filter: " + selectedTopic + "  |  " + selectedDifficulty + "  |  " + requestedQuestionCount + " questions"));
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         right.setOpaque(false);
@@ -140,8 +161,28 @@ public class QuizFrame extends JFrame {
     private void loadQuestions() {
         try {
             Connection conn = DBConnection.getConnection();
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM questions");
+            StringBuilder sql = new StringBuilder("SELECT * FROM questions WHERE 1=1");
+
+            if (!"All Topics".equalsIgnoreCase(selectedTopic)) {
+                sql.append(" AND LOWER(TRIM(topic)) = LOWER(TRIM(?))");
+            }
+            if (!"All Difficulties".equalsIgnoreCase(selectedDifficulty)) {
+                sql.append(" AND LOWER(TRIM(difficulty)) = LOWER(TRIM(?))");
+            }
+
+            sql.append(" ORDER BY id DESC");
+
+            PreparedStatement pst = conn.prepareStatement(sql.toString());
+            int parameterIndex = 1;
+
+            if (!"All Topics".equalsIgnoreCase(selectedTopic)) {
+                pst.setString(parameterIndex++, selectedTopic.trim());
+            }
+            if (!"All Difficulties".equalsIgnoreCase(selectedDifficulty)) {
+                pst.setString(parameterIndex, selectedDifficulty.trim());
+            }
+
+            ResultSet rs = pst.executeQuery();
 
             while (rs.next()) {
                 questions.add(new Question(
@@ -158,6 +199,9 @@ public class QuizFrame extends JFrame {
             }
 
             Collections.shuffle(questions);
+            if (questions.size() > requestedQuestionCount) {
+                questions.subList(requestedQuestionCount, questions.size()).clear();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -291,16 +335,60 @@ public class QuizFrame extends JFrame {
     private void saveResult(int score, double accuracy, int timeTaken) {
         try {
             Connection conn = DBConnection.getConnection();
+            ensureTopicStatsTable(conn);
             String sql = "INSERT INTO results (user_id, score, accuracy, time_taken) VALUES (?, ?, ?, ?)";
-            PreparedStatement pst = conn.prepareStatement(sql);
+            PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             pst.setInt(1, userId);
             pst.setInt(2, score);
             pst.setDouble(3, accuracy);
             pst.setInt(4, timeTaken);
             pst.executeUpdate();
+
+            int resultId = -1;
+            ResultSet generatedKeys = pst.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                resultId = generatedKeys.getInt(1);
+            }
+
+            if (resultId != -1) {
+                saveTopicStats(conn, resultId);
+            }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void ensureTopicStatsTable(Connection conn) throws Exception {
+        String sql = """
+                CREATE TABLE IF NOT EXISTS result_topic_stats (
+                    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    result_id INT NOT NULL,
+                    topic VARCHAR(100) NOT NULL,
+                    correct_count INT NOT NULL,
+                    total_count INT NOT NULL,
+                    CONSTRAINT fk_result_topic_stats_result
+                        FOREIGN KEY (result_id) REFERENCES results(id)
+                        ON DELETE CASCADE
+                )
+                """;
+
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        }
+    }
+
+    private void saveTopicStats(Connection conn, int resultId) throws Exception {
+        String sql = "INSERT INTO result_topic_stats (result_id, topic, correct_count, total_count) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            for (String topic : topicTotal.keySet()) {
+                pst.setInt(1, resultId);
+                pst.setString(2, topic);
+                pst.setInt(3, topicCorrect.getOrDefault(topic, 0));
+                pst.setInt(4, topicTotal.getOrDefault(topic, 0));
+                pst.addBatch();
+            }
+            pst.executeBatch();
         }
     }
 }
