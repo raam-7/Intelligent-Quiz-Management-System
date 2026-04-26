@@ -1,6 +1,5 @@
 import ui.LoginFrame;
 import ui.ModernTheme;
-
 import javax.swing.*;
 
 public class Main {
