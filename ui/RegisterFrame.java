@@ -17,39 +17,37 @@ public class RegisterFrame extends JFrame {
         setTitle("User Registration");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(true);
+        ModernTheme.prepareFrame(this, 940, 620);
 
-        JPanel root = new JPanel(new BorderLayout(0, 18));
-        root.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
-        root.setBackground(ModernTheme.BACKGROUND_COLOR);
+        JPanel root = ModernTheme.createPagePanel(new GridBagLayout());
+        root.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0;
 
-        JPanel header = new JPanel(new BorderLayout(0, 6));
-        header.setBackground(ModernTheme.PRIMARY_COLOR);
-        header.setBorder(BorderFactory.createEmptyBorder(22, 24, 22, 24));
+        JPanel hero = ModernTheme.createAuthHeroPanel(
+                "Create your learner account",
+                "Register once, then use the dashboard to start quizzes, track results, and compare progress.",
+                "New accounts are created as learners. Admin access can still be reached from the login screen with an admin account."
+        );
+        gbc.gridx = 0;
+        gbc.weightx = 0.44;
+        gbc.insets = new Insets(0, 0, 0, 18);
+        root.add(hero, gbc);
 
-        JLabel titleLabel = new JLabel("Create your account");
-        titleLabel.setFont(ModernTheme.TITLE_FONT);
-        titleLabel.setForeground(Color.WHITE);
-
-        JLabel subtitleLabel = new JLabel("Fill in the details below to get started.");
-        subtitleLabel.setFont(ModernTheme.LABEL_FONT);
-        subtitleLabel.setForeground(Color.WHITE);
-
-        header.add(titleLabel, BorderLayout.NORTH);
-        header.add(subtitleLabel, BorderLayout.SOUTH);
-
-        JPanel card = new JPanel();
+        JPanel card = ModernTheme.createCardPanel(new BorderLayout(0, 20));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ModernTheme.BORDER_COLOR, 1, true),
-                BorderFactory.createEmptyBorder(24, 24, 24, 24)
-        ));
 
         JLabel formTitle = new JLabel("Register new user");
         formTitle.setFont(ModernTheme.HEADER_FONT);
         formTitle.setForeground(ModernTheme.TEXT_COLOR);
         formTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(formTitle);
+        card.add(Box.createVerticalStrut(8));
+        JLabel formSubtitle = ModernTheme.createSubtleLabel("Enter your details to unlock quiz sessions.");
+        formSubtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.add(formSubtitle);
 
         card.add(Box.createVerticalStrut(18));
         JLabel nameLabel = createFieldLabel("Full Name");
@@ -57,8 +55,8 @@ public class RegisterFrame extends JFrame {
         card.add(nameLabel);
         card.add(Box.createVerticalStrut(6));
         nameField = new JTextField(22);
-        configurePlainField(nameField);
-        nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        ModernTheme.styleTextField(nameField);
+        nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         nameField.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(nameField);
         card.add(Box.createVerticalStrut(14));
@@ -68,8 +66,8 @@ public class RegisterFrame extends JFrame {
         card.add(emailLabel);
         card.add(Box.createVerticalStrut(6));
         emailField = new JTextField(22);
-        configurePlainField(emailField);
-        emailField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        ModernTheme.styleTextField(emailField);
+        emailField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         emailField.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(emailField);
         card.add(Box.createVerticalStrut(14));
@@ -79,8 +77,8 @@ public class RegisterFrame extends JFrame {
         card.add(passwordLabel);
         card.add(Box.createVerticalStrut(6));
         passwordField = new JPasswordField(22);
-        configurePlainField(passwordField);
-        passwordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        ModernTheme.stylePasswordField(passwordField);
+        passwordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         passwordField.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(passwordField);
         card.add(Box.createVerticalStrut(18));
@@ -91,16 +89,18 @@ public class RegisterFrame extends JFrame {
         buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
 
         JButton registerBtn = new JButton("Create Account");
-        stylePlainButton(registerBtn, ModernTheme.PRIMARY_COLOR, Color.WHITE);
+        ModernTheme.styleButton(registerBtn);
         JButton backBtn = new JButton("Back to Login");
-        stylePlainButton(backBtn, ModernTheme.SECONDARY_COLOR, Color.WHITE);
+        ModernTheme.styleSecondaryButton(backBtn);
         buttons.add(registerBtn);
         buttons.add(backBtn);
         card.add(buttons);
 
-        root.add(header, BorderLayout.NORTH);
-        root.add(card, BorderLayout.CENTER);
-        add(root);
+        gbc.gridx = 1;
+        gbc.weightx = 0.56;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        root.add(card, gbc);
+        add(ModernTheme.createScrollPane(root));
 
         registerBtn.addActionListener(e -> registerUser());
         backBtn.addActionListener(e -> {
@@ -108,8 +108,7 @@ public class RegisterFrame extends JFrame {
             dispose();
         });
 
-        pack();
-        setMinimumSize(new Dimension(600, 560));
+        setMinimumSize(new Dimension(700, 520));
         setLocationRelativeTo(null);
         SwingUtilities.invokeLater(() -> nameField.requestFocusInWindow());
         setVisible(true);
@@ -120,34 +119,6 @@ public class RegisterFrame extends JFrame {
         label.setFont(ModernTheme.LABEL_FONT);
         label.setForeground(ModernTheme.TEXT_COLOR);
         return label;
-    }
-
-    private void configurePlainField(JTextField field) {
-        field.setFont(ModernTheme.LABEL_FONT);
-        field.setBackground(Color.WHITE);
-        field.setForeground(Color.BLACK);
-        field.setCaretColor(Color.BLACK);
-        field.setEditable(true);
-        field.setEnabled(true);
-        field.setFocusable(true);
-        field.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ModernTheme.BORDER_COLOR, 1, true),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
-        field.setPreferredSize(new Dimension(340, 42));
-    }
-
-    private void stylePlainButton(JButton button, Color background, Color foreground) {
-        button.setFont(ModernTheme.BUTTON_FONT);
-        button.setText(button.getText());
-        button.setBackground(background);
-        button.setForeground(foreground);
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
-        button.setBorderPainted(false);
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setMargin(new Insets(12, 16, 12, 16));
     }
 
     private void registerUser() {

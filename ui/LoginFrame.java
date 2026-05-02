@@ -17,33 +17,27 @@ public class LoginFrame extends JFrame {
         setTitle("Intelligent Quiz Management System - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(true);
+        ModernTheme.prepareFrame(this, 900, 560);
 
-        JPanel root = new JPanel(new BorderLayout(0, 18));
-        root.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
-        root.setBackground(ModernTheme.BACKGROUND_COLOR);
+        JPanel root = ModernTheme.createPagePanel(new GridBagLayout());
+        root.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0;
 
-        JPanel header = new JPanel(new BorderLayout(0, 6));
-        header.setBackground(ModernTheme.PRIMARY_COLOR);
-        header.setBorder(BorderFactory.createEmptyBorder(22, 24, 22, 24));
+        JPanel hero = ModernTheme.createAuthHeroPanel(
+                "Intelligent Quiz Hub",
+                "Adaptive quizzes, progress insights, and admin tools in one focused workspace.",
+                "Sign in as an admin to manage questions and analytics, or as a learner to start a filtered quiz session."
+        );
+        gbc.gridx = 0;
+        gbc.weightx = 0.46;
+        gbc.insets = new Insets(0, 0, 0, 18);
+        root.add(hero, gbc);
 
-        JLabel titleLabel = new JLabel("Intelligent Quiz Hub");
-        titleLabel.setFont(ModernTheme.TITLE_FONT);
-        titleLabel.setForeground(Color.WHITE);
-
-        JLabel subtitleLabel = new JLabel("Sign in to continue.");
-        subtitleLabel.setFont(ModernTheme.LABEL_FONT);
-        subtitleLabel.setForeground(Color.WHITE);
-
-        header.add(titleLabel, BorderLayout.NORTH);
-        header.add(subtitleLabel, BorderLayout.SOUTH);
-
-        JPanel card = new JPanel();
+        JPanel card = ModernTheme.createCardPanel(new BorderLayout(0, 20));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ModernTheme.BORDER_COLOR, 1, true),
-                BorderFactory.createEmptyBorder(24, 24, 24, 24)
-        ));
 
         JLabel formTitle = new JLabel("Welcome back");
         formTitle.setFont(ModernTheme.HEADER_FONT);
@@ -64,8 +58,8 @@ public class LoginFrame extends JFrame {
         card.add(emailLabel);
         card.add(Box.createVerticalStrut(6));
         emailField = new JTextField(22);
-        configurePlainField(emailField);
-        emailField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        ModernTheme.styleTextField(emailField);
+        emailField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         emailField.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(emailField);
         card.add(Box.createVerticalStrut(14));
@@ -75,8 +69,8 @@ public class LoginFrame extends JFrame {
         card.add(passwordLabel);
         card.add(Box.createVerticalStrut(6));
         passwordField = new JPasswordField(22);
-        configurePlainField(passwordField);
-        passwordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        ModernTheme.stylePasswordField(passwordField);
+        passwordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         passwordField.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(passwordField);
         card.add(Box.createVerticalStrut(18));
@@ -87,16 +81,18 @@ public class LoginFrame extends JFrame {
         buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
 
         JButton loginBtn = new JButton("Login");
-        stylePlainButton(loginBtn, ModernTheme.PRIMARY_COLOR, Color.WHITE);
+        ModernTheme.styleButton(loginBtn);
         JButton registerBtn = new JButton("Register");
-        stylePlainButton(registerBtn, ModernTheme.SECONDARY_COLOR, Color.WHITE);
+        ModernTheme.styleSecondaryButton(registerBtn);
         buttons.add(loginBtn);
         buttons.add(registerBtn);
         card.add(buttons);
 
-        root.add(header, BorderLayout.NORTH);
-        root.add(card, BorderLayout.CENTER);
-        add(root);
+        gbc.gridx = 1;
+        gbc.weightx = 0.54;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        root.add(card, gbc);
+        add(ModernTheme.createScrollPane(root));
 
         loginBtn.addActionListener(e -> loginUser());
         registerBtn.addActionListener(e -> {
@@ -104,8 +100,7 @@ public class LoginFrame extends JFrame {
             dispose();
         });
 
-        pack();
-        setMinimumSize(new Dimension(560, 470));
+        setMinimumSize(new Dimension(680, 480));
         setLocationRelativeTo(null);
         SwingUtilities.invokeLater(() -> emailField.requestFocusInWindow());
         setVisible(true);
@@ -116,34 +111,6 @@ public class LoginFrame extends JFrame {
         label.setFont(ModernTheme.LABEL_FONT);
         label.setForeground(ModernTheme.TEXT_COLOR);
         return label;
-    }
-
-    private void configurePlainField(JTextField field) {
-        field.setFont(ModernTheme.LABEL_FONT);
-        field.setBackground(Color.WHITE);
-        field.setForeground(Color.BLACK);
-        field.setCaretColor(Color.BLACK);
-        field.setEditable(true);
-        field.setEnabled(true);
-        field.setFocusable(true);
-        field.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ModernTheme.BORDER_COLOR, 1, true),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
-        field.setPreferredSize(new Dimension(320, 42));
-    }
-
-    private void stylePlainButton(JButton button, Color background, Color foreground) {
-        button.setFont(ModernTheme.BUTTON_FONT);
-        button.setText(button.getText());
-        button.setBackground(background);
-        button.setForeground(foreground);
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
-        button.setBorderPainted(false);
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setMargin(new Insets(12, 16, 12, 16));
     }
 
     private void loginUser() {

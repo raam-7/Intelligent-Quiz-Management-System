@@ -51,7 +51,7 @@ public class AnalyticsDashboardFrame extends JFrame {
         charts.add(wrapChart("Answer Split", new ChartPanel(pieChart)));
 
         page.add(charts, BorderLayout.CENTER);
-        add(page);
+        add(ModernTheme.createScrollPane(page));
         setVisible(true);
     }
 

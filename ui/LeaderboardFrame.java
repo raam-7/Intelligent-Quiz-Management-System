@@ -35,7 +35,7 @@ public class LeaderboardFrame extends JFrame {
         card.add(scrollPane, BorderLayout.CENTER);
 
         page.add(card, BorderLayout.CENTER);
-        add(page);
+        add(ModernTheme.createScrollPane(page));
         setVisible(true);
     }
 

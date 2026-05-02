@@ -28,6 +28,7 @@ public class QuizFrame extends JFrame {
     private JLabel timerLabel;
     private JLabel difficultyLabel;
     private JLabel progressLabel;
+    private JProgressBar progressBar;
     private JRadioButton opt1;
     private JRadioButton opt2;
     private JRadioButton opt3;
@@ -61,7 +62,7 @@ public class QuizFrame extends JFrame {
 
         setTitle("Intelligent Quiz System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
+        setResizable(true);
         ModernTheme.prepareFrame(this, 980, 650);
 
         JPanel page = ModernTheme.createPagePanel(new BorderLayout(20, 20));
@@ -76,7 +77,7 @@ public class QuizFrame extends JFrame {
         footer.add(nextBtn);
         page.add(footer, BorderLayout.SOUTH);
 
-        add(page);
+        add(ModernTheme.createScrollPane(page));
 
         loadQuestions();
         if (questions.isEmpty()) {
@@ -109,11 +110,9 @@ public class QuizFrame extends JFrame {
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         right.setOpaque(false);
 
-        timerLabel = ModernTheme.createSubtleLabel("Time Left: 15s");
-        timerLabel.setForeground(ModernTheme.DANGER_COLOR);
+        timerLabel = ModernTheme.createPillLabel("Time Left: 15s", ModernTheme.DANGER_COLOR);
 
-        difficultyLabel = ModernTheme.createSubtleLabel("Level: Easy");
-        difficultyLabel.setForeground(ModernTheme.SUCCESS_COLOR);
+        difficultyLabel = ModernTheme.createPillLabel("Level: Easy", ModernTheme.SUCCESS_COLOR);
 
         right.add(timerLabel);
         right.add(difficultyLabel);
@@ -129,6 +128,18 @@ public class QuizFrame extends JFrame {
         questionLabel = new JLabel();
         questionLabel.setFont(ModernTheme.HEADER_FONT);
         questionLabel.setForeground(ModernTheme.TEXT_COLOR);
+
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setStringPainted(false);
+        progressBar.setBorderPainted(false);
+        progressBar.setForeground(ModernTheme.PRIMARY_COLOR);
+        progressBar.setBackground(new Color(226, 232, 240));
+        progressBar.setPreferredSize(new Dimension(10, 8));
+
+        JPanel questionHeader = new JPanel(new BorderLayout(0, 14));
+        questionHeader.setOpaque(false);
+        questionHeader.add(questionLabel, BorderLayout.CENTER);
+        questionHeader.add(progressBar, BorderLayout.SOUTH);
 
         JPanel optionsPanel = new JPanel(new GridLayout(4, 1, 0, 12));
         optionsPanel.setOpaque(false);
@@ -153,8 +164,8 @@ public class QuizFrame extends JFrame {
         optionsPanel.add(opt3);
         optionsPanel.add(opt4);
 
-        card.add(questionLabel, BorderLayout.NORTH);
-        card.add(optionsPanel, BorderLayout.CENTER);
+        card.add(questionHeader, BorderLayout.NORTH);
+        card.add(ModernTheme.createScrollPane(optionsPanel), BorderLayout.CENTER);
         return card;
     }
 
@@ -215,10 +226,12 @@ public class QuizFrame extends JFrame {
         opt3.setText(q.getOption3());
         opt4.setText(q.getOption4());
         progressLabel.setText("Question " + (currentIndex + 1) + " of " + questions.size() + "  |  Topic: " + q.getTopic());
+        progressBar.setValue((int) (((currentIndex + 1) * 100.0) / questions.size()));
 
         group.clearSelection();
         timeLeft = 15;
         timerLabel.setText("Time Left: 15s");
+        timerLabel.setForeground(ModernTheme.DANGER_COLOR);
     }
 
     private void startTimer() {
